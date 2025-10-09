@@ -1,9 +1,16 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
 import StationRoutes from "./routes/stations.js";
+import authRoutes from "./routes/auth.js";
+
+dotenv.config();
 
 const app = express();
 
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const corsOptions = {
   origin: [
@@ -17,11 +24,11 @@ const corsOptions = {
 };
 
 
-app.use(express.json());
-
 app.use(cors(corsOptions));
 
+
 app.use("/stations", StationRoutes);
+app.use("/auth", authRoutes);
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");
