@@ -8,9 +8,10 @@ const JWT_SECRET = process.env.JWT_SECRET ;
 
 export const register = async (req: Request, res: Response) => {
     try {
-        console.log('Register request body:', req.body); // Log para depuración
+        console.log('Register request body:', req.body); 
         
-        const { nombre, apellido, matricula, password, rol = 'usuario' } = req.body;
+        let { nombre, apellido, matricula, password, rol = 'usuario' } = req.body;
+        matricula = matricula.toUpperCase();    
 
         if (!nombre || !apellido || !matricula || !password) {
             console.error('Missing required fields:', { nombre, apellido, matricula, password: !!password });
@@ -60,7 +61,8 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
-        const { matricula, password } = req.body;
+        let { matricula, password } = req.body;
+        matricula = matricula.toUpperCase(); // Convertir a mayúsculas
 
         if (!matricula || !password) {
             console.error('Missing credentials:', { matricula: !!matricula, password: !!password });
