@@ -1,0 +1,54 @@
+import { RowDataPacket } from 'mysql2';
+import pool from "../config/database";
+import { Bike, BikeStatus, BikePriority } from "../types/bike.types";
+import { BikeTripLog, FormattedBikeTripLog } from "../types/bikeTripLog.types";
+
+export const getAllBikes = async (): Promise<Bike[]> => {
+    const [rows] = await pool.query<Bike[]>("SELECT * FROM bicicletas");
+    return rows;
+};
+
+export const getBikeById = async (id: number): Promise<Bike | undefined> => {
+    const [rows] = await pool.query<Bike[]>("SELECT * FROM bicicletas WHERE id = ?", [id]);
+    return rows[0];
+};
+
+export const updateBikeStatus = async (id: number, status: BikeStatus): Promise<void> => {
+    await pool.query(
+        "UPDATE bicicletas SET estado = ? WHERE id = ?",
+        [status, id]
+    );
+};
+
+export const updateBikeStation = async (bikeId: number, stationId: number | null): Promise<void> => {
+    await pool.query(
+        "UPDATE bicicletas SET estacion = ? WHERE id = ?",
+        [stationId, bikeId]
+    );
+};
+
+
+export const getBikeTripLogs = async (bikeId: number): Promise<FormattedBikeTripLog[]> => {
+    const [rows] = await pool.query<BikeTripLog[] & RowDataPacket[][]>(
+        `SELECT 
+            v.id,
+            DATE_FORMAT(v.fecha_uso, '%Y-%m-%d %H:%i:%s') as fecha,
+            v.tiempo_uso as tiempo,
+            v.distancia,
+            CONCAT(u.nombre, ' ', u.apellido) as usuario
+         FROM viajes v
+         JOIN Usuario u ON v.id_usuario = u.id
+         WHERE v.id_bicicleta = ?
+         ORDER BY v.fecha_uso DESC`,
+        [bikeId]
+    );
+    
+    // The date is already formatted in the SQL query, so we can use it directly
+    return (rows as any[]).map(row => ({
+        id: row.id,
+        fecha: row.fecha,  // Already formatted in SQL
+        tiempo: row.tiempo,
+        distancia: row.distancia,
+        usuario: row.usuario
+    }));
+};

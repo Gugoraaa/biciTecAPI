@@ -1,10 +1,23 @@
 import { Request, Response } from "express";
-import pool from "../config/database";
+import * as stationModel from "../models/stationModel";
 
 export const getStations = async (req: Request, res: Response) => {
     try {
-        const [rows] = await pool.query("SELECT * FROM Estaciones");
-        res.json(rows);
+        const stations = await stationModel.getAllStations();
+        res.json(stations);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const getStation = async (req: Request, res: Response) => {
+    try {
+        const station = await stationModel.getStationById(Number(req.params.id));
+        if (!station) {
+            return res.status(404).json({ error: "Station not found" });
+        }
+        res.json(station);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal server error" });

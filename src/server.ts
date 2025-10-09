@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import StationRoutes from "./routes/stations.js";
 import authRoutes from "./routes/auth.js";
+import bikeRoutes from "./routes/bikes.js";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use(cors(corsOptions));
 
 app.use("/stations", StationRoutes);
 app.use("/auth", authRoutes);
+app.use("/bikes", bikeRoutes);
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");
