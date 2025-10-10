@@ -27,7 +27,6 @@ export const getStationPercent = async (req: Request, res: Response) => {
   try {
     const stations = await overviewModel.getStationsCapacityData();
 
-    // Calculate percentage for each station
     const stationsWithPercentage = stations.map((station) => ({
       id_estacion: station.id_estacion,
       nombre: station.nombre,
