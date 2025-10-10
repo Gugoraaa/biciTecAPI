@@ -25,27 +25,56 @@ export const getBikesUsedLast24Hours = async (req: Request, res: Response) => {
 
 export const getStationPercent = async (req: Request, res: Response) => {
   try {
+    console.log('Fetching station capacity data...');
     const stations = await overviewModel.getStationsCapacityData();
 
-    const stationsWithPercentage = stations.map((station) => ({
-      id_estacion: station.id_estacion,
-      nombre: station.nombre,
-      estado: station.estado,
-      porcentaje_ocupacion: Math.min(
-        100,
-        Math.round((station.bicicletas / station.capacidad_max) * 100)
-      ),
-      bicicletas_disponibles: station.bicicletas,
-      capacidad_total: station.capacidad_max,
-    }));
+    if (!Array.isArray(stations)) {
+      throw new Error('Invalid data format received from database');
+    }
 
-    res.json(stationsWithPercentage);
+    const stationsWithPercentage = stations.map((station) => {
+      if (typeof station.bicicletas !== 'number' || typeof station.capacidad_max !== 'number') {
+        console.error('Invalid station data:', station);
+        throw new Error('Invalid station data: missing or invalid required fields');
+      }
+
+      const percentage = station.capacidad_max > 0 
+        ? Math.min(100, Math.round((station.bicicletas / station.capacidad_max) * 100))
+        : 0;
+
+      return {
+        id_estacion: station.id_estacion,
+        nombre: station.nombre,
+        estado: station.estado,
+        porcentaje_ocupacion: percentage,
+        bicicletas_disponibles: station.bicicletas,
+        capacidad_total: station.capacidad_max,
+        last_updated: new Date().toISOString()
+      };
+    });
+
+    console.log(`Successfully processed ${stationsWithPercentage.length} stations`);
+    res.json({
+      success: true,
+      data: stationsWithPercentage,
+      timestamp: new Date().toISOString()
+    });
+
   } catch (error) {
-    console.error("Error fetching stations percentage:", error);
-    res
-      .status(500)
-      .json({
-        error: "Error al obtener el porcentaje de ocupación de las estaciones",
-      });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error('Error in getStationPercent:', {
+      message: errorMessage,
+      stack: errorStack,
+      timestamp: new Date().toISOString()
+    });
+
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener el porcentaje de ocupación de las estaciones',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+      timestamp: new Date().toISOString()
+    });
   }
 };
