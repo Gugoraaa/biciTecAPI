@@ -1,11 +1,11 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import StationRoutes from "./routes/stations.js";
-import authRoutes from "./routes/auth.js";
-import bikeRoutes from "./routes/bikes.js";
-import overviewRoutes from "./routes/overview.js";
-
+import StationRoutes from "./routes/stations";
+import authRoutes from "./routes/auth";
+import bikeRoutes from "./routes/bikes";
+import overviewRoutes from "./routes/overview";
+import reportRoutes from "./routes/report";
 dotenv.config();
 
 const app = express();
@@ -30,6 +30,9 @@ app.use("/stations", StationRoutes);
 app.use("/auth", authRoutes);
 app.use("/bikes", bikeRoutes);
 app.use("/overview", overviewRoutes);
+
+
+app.use("/reports", reportRoutes);
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");
