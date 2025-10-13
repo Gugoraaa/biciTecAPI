@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS Tickets (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     id_usuario BIGINT NOT NULL,
     estado ENUM('Open', 'InProgress', 'Done') DEFAULT 'Open',
+    prioridad ENUM('Low', 'Medium', 'High') DEFAULT 'Low',
     id_bici BIGINT,
     descripcion TEXT,
     fecha_reporte DATE NOT NULL,

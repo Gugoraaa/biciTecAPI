@@ -1,4 +1,4 @@
-import { RowDataPacket } from 'mysql2';
+import { RowDataPacket,ResultSetHeader } from 'mysql2';
 import pool from "../config/database";
 import { Report } from "../types/report.types";
 
@@ -40,9 +40,79 @@ export const getReportById = async (id: number): Promise<Report | undefined> => 
     return rows[0] as unknown as Report;
 };
 
-export const    getReports = async (): Promise<Report[]> => {
+export const getReports = async (): Promise<Report[]> => {
     const [rows] = await pool.query<RowDataPacket[]>(
         'SELECT * FROM Tickets ORDER BY fecha_reporte DESC'
     );
     return rows as unknown as Report[];
+};
+
+export const updateReportStatus = async (id: number, status: 'Open' | 'InProgress' | 'Done'): Promise<Report> => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        
+        const [result] = await connection.query<RowDataPacket[]>(
+            'UPDATE Tickets SET estado = ?, fecha_entrega = NOW() WHERE id = ?',
+            [status, id]
+        );
+
+        const [rows] = await connection.query<RowDataPacket[]>(
+            'SELECT * FROM Tickets WHERE id = ?',
+            [id]
+        );
+
+        await connection.commit();
+        return rows[0] as unknown as Report;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+export const updateReportPriority = async (id: number, priority: 'Low' | 'Medium' | 'High'): Promise<Report> => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        
+        const [result] = await connection.query<RowDataPacket[]>(
+            'UPDATE Tickets SET prioridad = ? WHERE id = ?',
+            [priority, id]
+        );
+
+        const [rows] = await connection.query<RowDataPacket[]>(
+            'SELECT * FROM Tickets WHERE id = ?',
+            [id]
+        );
+
+        await connection.commit();
+        return rows[0] as unknown as Report;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+export const deleteReport = async (id: number): Promise<boolean> => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [result] = await connection.query<ResultSetHeader>(
+            'DELETE FROM Tickets WHERE id = ?',
+            [id]
+        );
+
+        await connection.commit();
+        return result.affectedRows > 0;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };

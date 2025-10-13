@@ -54,6 +54,7 @@ export const getBikeTripLogs = async (req: Request, res: Response) => {
     }
 };
 
+
 export const updateBikeStation = async (req: Request, res: Response) => {
     try {
         const { stationId } = req.body;
@@ -67,3 +68,5 @@ export const updateBikeStation = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+
