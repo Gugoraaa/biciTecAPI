@@ -93,53 +93,64 @@ export const getBikesUsedLast24Hours = async (): Promise<BikeUsageData[]> => {
   const connection = await (pool as Pool).getConnection();
 
   try {
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const tz = "America/Mexico_City";
 
-    console.log(`Fetching bike usage data from ${twentyFourHoursAgo.toISOString()} to ${now.toISOString()}`);
+    const now = new Date();
+    const nowMX = new Date(now.toLocaleString("en-US", { timeZone: tz }));
+
+    const floorToHour = (d: Date) => {
+      const x = new Date(d);
+      x.setMinutes(0, 0, 0);
+      return x;
+    };
+
+    const currentHourStartMX = floorToHour(nowMX);
+    const endMX = new Date(currentHourStartMX.getTime() + 60 * 60 * 1000);
+    const startMX = new Date(endMX.getTime() - 24 * 60 * 60 * 1000);
+
+    const fmt = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      const ss = String(d.getSeconds()).padStart(2, "0");
+      return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
+    };
+
+    console.log(`Fetching bike usage data from ${fmt(startMX)} to ${fmt(endMX)} (CDMX)`);
 
     const [rows] = await connection.execute<RowDataPacket[]>(
-      `SELECT  
-            HOUR(CONVERT_TZ(fecha_uso, '+00:00', 'America/Mexico_City')) AS hour,
-            COUNT(*) AS count
-        FROM viajes
-        WHERE fecha_uso >= ?
-          AND fecha_uso <= ?
-        GROUP BY HOUR(CONVERT_TZ(fecha_uso, '+00:00', 'America/Mexico_City'))
-        ORDER BY hour;`,
-      [
-        twentyFourHoursAgo.toISOString().slice(0, 19).replace('T', ' '),
-        now.toISOString().slice(0, 19).replace('T', ' ')
-      ]
+      `
+      SELECT
+        DATE_FORMAT(
+          CONVERT_TZ(fecha_uso, '+00:00', 'America/Mexico_City'),
+          '%Y-%m-%d %H:00:00'
+        ) AS bucket_cdmx,
+        COUNT(*) AS count
+      FROM viajes
+      WHERE fecha_uso >= CONVERT_TZ(?, 'America/Mexico_City', '+00:00')
+        AND fecha_uso <  CONVERT_TZ(?, 'America/Mexico_City', '+00:00')  -- [start, end)
+      GROUP BY bucket_cdmx
+      ORDER BY bucket_cdmx;
+      `,
+      [fmt(startMX), fmt(endMX)]
     );
 
-    console.log(`Found ${rows.length} hours with bike usage data`);
+    const map = new Map<string, number>();
+    rows.forEach(r => map.set(r.bucket_cdmx, Number(r.count) || 0));
 
-    const hourlyData = new Map<number, number>();
-    for (let i = 0; i < 24; i++) {
-      hourlyData.set(i, 0);
-    }
-    rows.forEach((row) => {
-      hourlyData.set(row.hour, Number(row.count) || 0);
-    });
-
-    const currentHour = now.getHours();
     const result: BikeUsageData[] = [];
-
     for (let i = 0; i < 24; i++) {
-      const hourInDay = (currentHour + i + 1) % 24;
-      const hourLabel = hourInDay.toString().padStart(2, '0') + ':00';
-      
+      const t = new Date(currentHourStartMX.getTime() - i * 60 * 60 * 1000);
+      const label = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")} ${String(t.getHours()).padStart(2, "0")}:00:00`;
       result.push({
-        hour: hourLabel,
-        count: hourlyData.get(hourInDay) || 0
+        hour: label.slice(11, 16),
+        count: map.get(label) ?? 0,
       });
     }
-    
+
     return result;
-  } catch (error) {
-    console.error("Error getting bikes used in last 24 hours:", error);
-    throw error;
   } finally {
     connection.release();
   }
