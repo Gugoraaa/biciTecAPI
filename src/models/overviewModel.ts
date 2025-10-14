@@ -9,27 +9,19 @@ export const getOverviewData = async () => {
   const connection = await (pool as Pool).getConnection();
 
   try {
-    // Get total number of bikes
     const [bikesCount] = await connection.execute<CountResult[]>(
       "SELECT COUNT(*) as count FROM bicicletas"
     );
-
-    // Get available bikes
     const [availableBikes] = await connection.execute<CountResult[]>(
       "SELECT COUNT(*) as count FROM bicicletas WHERE estado = 'Available'"
     );
-
-    // Get in-use bikes
     const [inUseBikes] = await connection.execute<CountResult[]>(
       "SELECT COUNT(*) as count FROM bicicletas WHERE estado = 'InUse'"
     );
-
-    // Get bikes in maintenance
     const [inMaintenanceBikes] = await connection.execute<CountResult[]>(
       "SELECT COUNT(*) as count FROM bicicletas WHERE estado = 'Maintenance'"
     );
 
-    // Get active stations (stations that are operational)
     const [activeStations] = await connection.execute<CountResult[]>(
       "SELECT COUNT(*) as count FROM Estaciones WHERE estado = 'Operational'"
     );
@@ -81,7 +73,7 @@ export const getStationsCapacityData = async () => {
       id_estacion: station.id_estacion,
       nombre: station.nombre,
       estado: station.estado,
-      capacidad_max: Number(station.capacidad_max) || 1, // Avoid division by zero
+      capacidad_max: Number(station.capacidad_max) || 1,
       bicicletas: Number(station.bicicletas) || 0,
     }));
   } catch (error) {
@@ -101,13 +93,11 @@ export const getBikesUsedLast24Hours = async (): Promise<BikeUsageData[]> => {
   const connection = await (pool as Pool).getConnection();
 
   try {
-    // Get the current time and calculate exactly 24 hours ago
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     console.log(`Fetching bike usage data from ${twentyFourHoursAgo.toISOString()} to ${now.toISOString()}`);
 
-    // Query to get bike usage count per hour for the last 24 hours
     const [rows] = await connection.execute<RowDataPacket[]>(
       `SELECT  
             HOUR(CONVERT_TZ(fecha_uso, '+00:00', 'America/Mexico_City')) AS hour,
@@ -125,24 +115,18 @@ export const getBikesUsedLast24Hours = async (): Promise<BikeUsageData[]> => {
 
     console.log(`Found ${rows.length} hours with bike usage data`);
 
-    // Create a map of all 24 hours with count 0
     const hourlyData = new Map<number, number>();
     for (let i = 0; i < 24; i++) {
       hourlyData.set(i, 0);
     }
-
-    // Update the map with actual data
     rows.forEach((row) => {
       hourlyData.set(row.hour, Number(row.count) || 0);
     });
 
-    // Get the current hour to determine the rolling 24-hour window
     const currentHour = now.getHours();
     const result: BikeUsageData[] = [];
 
-    // Generate hours in the correct order (from 24 hours ago to now)
     for (let i = 0; i < 24; i++) {
-      // Calculate the hour in the rolling 24-hour window
       const hourInDay = (currentHour + i + 1) % 24;
       const hourLabel = hourInDay.toString().padStart(2, '0') + ':00';
       
