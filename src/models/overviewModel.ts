@@ -109,14 +109,14 @@ export const getBikesUsedLast24Hours = async (): Promise<BikeUsageData[]> => {
 
     // Query to get bike usage count per hour for the last 24 hours
     const [rows] = await connection.execute<RowDataPacket[]>(
-      `SELECT 
-        HOUR(fecha_uso) as hour,
-        COUNT(*) as count
-      FROM viajes
-      WHERE fecha_uso >= ?
-      AND fecha_uso <= ?
-      GROUP BY HOUR(fecha_uso)
-      ORDER BY hour`,
+      `SELECT  
+            HOUR(CONVERT_TZ(fecha_uso, '+00:00', 'America/Mexico_City')) AS hour,
+            COUNT(*) AS count
+        FROM viajes
+        WHERE fecha_uso >= ?
+          AND fecha_uso <= ?
+        GROUP BY HOUR(CONVERT_TZ(fecha_uso, '+00:00', 'America/Mexico_City'))
+        ORDER BY hour;`,
       [
         twentyFourHoursAgo.toISOString().slice(0, 19).replace('T', ' '),
         now.toISOString().slice(0, 19).replace('T', ' ')
