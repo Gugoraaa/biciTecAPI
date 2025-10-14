@@ -30,18 +30,18 @@ export const updateBikeStation = async (bikeId: number, stationId: number | null
 
 export const getBikeTripLogs = async (bikeId: number): Promise<FormattedBikeTripLog[]> => {
     const [rows] = await pool.query<BikeTripLog[] & RowDataPacket[][]>(
-        `SELECT 
-            v.id,
-            DATE_FORMAT(v.fecha_uso, '%Y-%m-%d %H:%i:%s') as fecha,
-            v.tiempo_uso as tiempo,
-            v.distancia,
-            CONCAT(u.nombre, ' ', u.apellido) as usuario
-         FROM viajes v
-         JOIN Usuario u ON v.id_usuario = u.id
-         WHERE v.id_bicicleta = ?
-         ORDER BY v.fecha_uso DESC`,
+        `SELECT
+        v.id,
+        DATE_FORMAT(CONVERT_TZ(v.fecha_uso, '+00:00', 'America/Mexico_City'), '%Y-%m-%d %H:%i:%s') AS fecha,
+        v.tiempo_uso AS tiempo,
+        v.distancia,
+        CONCAT(u.nombre, ' ', u.apellido) AS usuario
+        FROM viajes v
+        JOIN Usuario u ON v.id_usuario = u.id
+        WHERE v.id_bicicleta = ?
+        ORDER BY v.fecha_uso DESC;`,
         [bikeId]
-    );
+    );  
     
     // The date is already formatted in the SQL query, so we can use it directly
     return (rows as any[]).map(row => ({

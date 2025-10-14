@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth";
 import bikeRoutes from "./routes/bikes";
 import overviewRoutes from "./routes/overview";
 import reportRoutes from "./routes/report";
+import tripRoutes from "./routes/trips";
 dotenv.config();
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/auth", authRoutes);
 app.use("/bikes", bikeRoutes);
 app.use("/overview", overviewRoutes);
 app.use("/reports", reportRoutes);
+app.use("/trips", tripRoutes);
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");

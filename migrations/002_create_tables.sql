@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS Usuario (
     rol ENUM('admin', 'usuario') DEFAULT 'usuario',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    en_viaje BOOL DEFAULT FALSE,
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create Estaciones table
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS viajes (
     id_bicicleta BIGINT NOT NULL,
     fecha_uso DATE NOT NULL,
     tiempo_uso BIGINT DEFAULT 0,
+    fecha_terminado DATE DEFAULT NULL,
     distancia BIGINT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
