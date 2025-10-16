@@ -81,7 +81,7 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
     try {
         let { matricula, password } = req.body;
-        matricula = matricula.toUpperCase(); // Convertir a mayúsculas
+        matricula = matricula.toUpperCase();
 
         if (!matricula || !password) {
             console.error('Missing credentials:', { matricula: !!matricula, password: !!password });

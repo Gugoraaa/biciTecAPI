@@ -25,7 +25,6 @@ export const getBikesUsedLast24Hours = async (req: Request, res: Response) => {
 
 export const getStationPercent = async (req: Request, res: Response) => {
   try {
-    console.log('Fetching station capacity data...');
     const stations = await overviewModel.getStationsCapacityData();
 
     if (!Array.isArray(stations)) {
@@ -53,7 +52,6 @@ export const getStationPercent = async (req: Request, res: Response) => {
       };
     });
 
-    console.log(`Successfully processed ${stationsWithPercentage.length} stations`);
     res.json({
       success: true,
       data: stationsWithPercentage,

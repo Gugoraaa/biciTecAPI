@@ -32,7 +32,6 @@ export const startTrip = async (userId: number, bikeId: number): Promise<number>
 };
 
 export const endTrip = async (tripId: number, stationId: number): Promise<void> => {
-    // Get trip start time
     const [trip] = await pool.query<Trip[]>(
         'SELECT * FROM viajes WHERE id = ?',
         [tripId]
@@ -41,12 +40,7 @@ export const endTrip = async (tripId: number, stationId: number): Promise<void> 
     if (!trip[0]) {
         throw new Error('Trip not found');
     }
-
-    const startTime = new Date(trip[0].fecha_uso);
-    const endTime = new Date();
     
-
-    // Update trip with end time and duration
     await pool.query(
     `UPDATE viajes
     SET fecha_terminado = NOW(),

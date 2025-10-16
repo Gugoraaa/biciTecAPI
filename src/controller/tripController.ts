@@ -12,7 +12,6 @@ export const handleTrip = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Invalid user ID' });
         }
 
-        // Check if user exists and get current trip status
         const user = await tripModel.getUserStatus(userId);
 
         if (!user) {
@@ -22,7 +21,6 @@ export const handleTrip = async (req: Request, res: Response) => {
         await connection.beginTransaction();
 
         if (user.en_viaje) {
-            // End trip logic
             if (!stationId) {
                 return res.status(400).json({ error: 'Station ID is required to end a trip' });
             }
@@ -32,10 +30,8 @@ export const handleTrip = async (req: Request, res: Response) => {
                 return res.status(400).json({ error: 'No active trip found' });
             }
 
-            // End the trip
             await tripModel.endTrip(activeTrip.id, stationId);
 
-            // Update bike and station
             await Promise.all([
                 connection.query(
                     'UPDATE bicicletas SET estacion = ?, estado = ? WHERE id = ?',
@@ -58,21 +54,17 @@ export const handleTrip = async (req: Request, res: Response) => {
                 endTime: new Date()
             });
         } else {
-            // Start trip logic
             if (!stationId) {
                 return res.status(400).json({ error: 'Station ID is required to start a trip' });
             }
 
-            // Find an available bike
             const bikeId = await tripModel.getAvailableBikeAtStation(stationId);
             if (!bikeId) {
                 return res.status(400).json({ error: 'No available bikes at this station' });
             }
 
-            // Start the trip
             const tripId = await tripModel.startTrip(userId, bikeId);
 
-            // Update bike and station
             await Promise.all([
                 tripModel.updateBikeStation(bikeId),
                 tripModel.updateBikesAtStation(stationId),

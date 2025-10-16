@@ -43,10 +43,9 @@ export const getBikeTripLogs = async (bikeId: number): Promise<FormattedBikeTrip
         [bikeId]
     );  
     
-    // The date is already formatted in the SQL query, so we can use it directly
     return (rows as any[]).map(row => ({
         id: row.id,
-        fecha: row.fecha,  // Already formatted in SQL
+        fecha: row.fecha,
         tiempo: row.tiempo,
         distancia: row.distancia,
         usuario: row.usuario
