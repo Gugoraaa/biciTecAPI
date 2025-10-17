@@ -33,7 +33,6 @@ export const getStationPercent = async (req: Request, res: Response) => {
 
     const stationsWithPercentage = stations.map((station) => {
       if (typeof station.bicicletas !== 'number' || typeof station.capacidad_max !== 'number') {
-        console.error('Invalid station data:', station);
         throw new Error('Invalid station data: missing or invalid required fields');
       }
 

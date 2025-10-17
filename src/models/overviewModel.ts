@@ -118,7 +118,6 @@ export const getBikesUsedLast24Hours = async (): Promise<BikeUsageData[]> => {
       return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
     };
 
-    console.log(`Fetching bike usage data from ${fmt(startMX)} to ${fmt(endMX)} (CDMX)`);
 
     const [rows] = await connection.execute<RowDataPacket[]>(
       `

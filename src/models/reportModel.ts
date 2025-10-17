@@ -52,10 +52,18 @@ export const updateReportStatus = async (id: number, status: 'Open' | 'InProgres
     try {
         await connection.beginTransaction();
         
+
         const [result] = await connection.query<RowDataPacket[]>(
-            'UPDATE Tickets SET estado = ?, fecha_entrega = NOW() WHERE id = ?',
+            'UPDATE Tickets SET estado = ? WHERE id = ?',
             [status, id]
         );
+
+        if (status == 'Done') {
+            await connection.query(
+                'UPDATE Tickets SET fecha_entrega = NOW() WHERE id = ?',
+                [id]
+            );
+        }
 
         const [rows] = await connection.query<RowDataPacket[]>(
             'SELECT * FROM Tickets WHERE id = ?',
