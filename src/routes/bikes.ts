@@ -4,7 +4,8 @@ import {
     getBike, 
     updateBikeStatus, 
     updateBikeStation,
-    getBikeTripLogs
+    getBikeTripLogs,
+    addBike
 } from "../controller/bikesController";
 
 const router = Router();
@@ -15,5 +16,6 @@ router.get("/:id", getBike);
 router.patch("/:id/status", updateBikeStatus);
 router.patch("/:id/station", updateBikeStation);
 router.get("/:id/logs", getBikeTripLogs);
+router.post("/addBike", addBike);
 
 export default router;

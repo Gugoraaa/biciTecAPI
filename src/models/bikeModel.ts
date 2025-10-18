@@ -51,3 +51,10 @@ export const getBikeTripLogs = async (bikeId: number): Promise<FormattedBikeTrip
         usuario: row.usuario
     }));
 };
+
+export const addBike = async (station: number, size: number): Promise<void> => {
+    await pool.query(
+        "INSERT INTO bicicletas (estacion, estado, tamaño) VALUES (?, ?, ?)",
+        [station, "Available", size]
+    );
+};

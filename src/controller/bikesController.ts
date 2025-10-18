@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as bikeModel from "../models/bikeModel";
 import { BikeStatus } from "../types/bike.types";
+import * as stationModel from "../models/stationModel";
 
 export const getBikes = async (req: Request, res: Response) => {
     try {
@@ -69,4 +70,14 @@ export const updateBikeStation = async (req: Request, res: Response) => {
     }
 };
 
-
+export const addBike = async (req: Request, res: Response) => {
+    try {
+        const {station,size } = req.body;
+        await bikeModel.addBike(station,size);
+        await stationModel.updateStationBikeCount(Number(station),1);
+        res.json({ message: "Bike added successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
