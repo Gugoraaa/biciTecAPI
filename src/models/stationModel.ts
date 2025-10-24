@@ -17,3 +17,10 @@ export const updateStationBikeCount = async (stationId: number, change: number):
         [change, stationId]
     );
 };
+
+export const updateStationStatus = async (stationId: number, status: string): Promise<void> => {
+    await pool.query(
+        "UPDATE Estaciones SET estado = ? WHERE id = ?",
+        [status, stationId]
+    );
+};

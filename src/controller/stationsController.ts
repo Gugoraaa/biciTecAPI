@@ -34,4 +34,15 @@ export const updateStationBikeCount = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
-    
+
+export const updateStationStatus = async (req: Request, res: Response) => {
+    try {
+        const { status } = req.body;
+        const {id} = req.params;
+        await stationModel.updateStationStatus(Number(id),status);
+        res.json({ message: "Station status updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
