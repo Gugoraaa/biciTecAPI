@@ -7,6 +7,7 @@ export const handleTrip = async (req: Request, res: Response) => {
     try {
         const userId = Number(req.params.userId);
         const stationId = Number(req.body.stationId) ;
+        const distance = Number(req.body.distance);
 
         if (!userId || isNaN(userId)) {
             return res.status(400).json({ error: 'Invalid user ID' });
@@ -16,6 +17,9 @@ export const handleTrip = async (req: Request, res: Response) => {
 
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
+        }
+        if (!distance || isNaN(distance)) {
+            return res.status(400).json({ error: 'Invalid distance' });
         }
 
         await connection.beginTransaction();
@@ -30,12 +34,12 @@ export const handleTrip = async (req: Request, res: Response) => {
                 return res.status(400).json({ error: 'No active trip found' });
             }
 
-            await tripModel.endTrip(activeTrip.id, stationId);
+            await tripModel.endTrip(activeTrip.id, distance);
 
             await Promise.all([
                 connection.query(
-                    'UPDATE bicicletas SET estacion = ?, estado = ? WHERE id = ?',
-                    [stationId, 'Available', activeTrip.id_bicicleta]
+                    'UPDATE bicicletas SET estacion = ?, estado = ?,total_km = total_km + ? WHERE id = ?',
+                    [stationId, 'Available', distance, activeTrip.id_bicicleta]
                 ),
                 connection.query(
                     'UPDATE Estaciones SET bicicletas = bicicletas + 1 WHERE id = ?',

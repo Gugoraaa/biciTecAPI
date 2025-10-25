@@ -31,7 +31,7 @@ export const startTrip = async (userId: number, bikeId: number): Promise<number>
     return result.insertId;
 };
 
-export const endTrip = async (tripId: number, stationId: number): Promise<void> => {
+export const endTrip = async (tripId: number, distance: number): Promise<void> => {
     const [trip] = await pool.query<Trip[]>(
         'SELECT * FROM viajes WHERE id = ?',
         [tripId]
@@ -44,9 +44,10 @@ export const endTrip = async (tripId: number, stationId: number): Promise<void> 
     await pool.query(
     `UPDATE viajes
     SET fecha_terminado = NOW(),
-        tiempo_uso = TIMESTAMPDIFF(MINUTE, fecha_uso, NOW())
+        tiempo_uso = TIMESTAMPDIFF(MINUTE, fecha_uso, NOW()),
+        distancia = ?
     WHERE id = ?`,
-    [tripId]
+    [distance, tripId]
 );
 return;
 };
