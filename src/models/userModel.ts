@@ -1,36 +1,76 @@
 import pool from "../config/database";
-import { User, UserRole } from "../types/user.types";
 
-export const createUser = async (user: Omit<User, 'id'>): Promise<User> => {
+export const getUsers = async () => {
+  try {
+    const [rows] = await pool.execute(
+      "SELECT id,matricula, nombre, apellido,estado FROM Usuario"
+    );
+    return rows;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const updateUserState = async (id: number, state: string) => {
+  try {
     const [result] = await pool.execute(
-        'INSERT INTO Usuario (nombre, apellido, matricula, password, rol) VALUES (?, ?, ?, ?, ?)',
-        [user.nombre, user.apellido, user.matricula, user.password, user.rol]
+      "UPDATE Usuario SET estado = ? WHERE id = ?",
+      [state, id]
     );
-    
-    const userId = (result as any).insertId;
-    return { id: userId, ...user };
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };
 
-export const findUserByMatricula = async (matricula: string, includePassword = false): Promise<User | null> => {
-    const fields = includePassword 
-        ? 'id, nombre, apellido, matricula, password, rol' 
-        : 'id, nombre, apellido, matricula, rol';
-        
-    const [rows] = await pool.execute(
-        `SELECT ${fields} FROM Usuario WHERE matricula = ?`,
-        [matricula]
+export const createAppeal = async (id: number, description: string) => {
+  try {
+    const [result] = await pool.execute(
+      "INSERT INTO Apelaciones (id_usuario, mensaje,resuelto,id_admin) VALUES (?,?,?,?)",
+      [id, description, false, null]
     );
-    
-    const users = rows as User[];
-    return users.length > 0 ? users[0] : null;
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };
 
-export const getUserById = async (id: number): Promise<User | null> => {
-    const [rows] = await pool.execute(
-        'SELECT id, nombre, apellido, matricula, rol FROM Usuario WHERE id = ?',
-        [id]
+export const getAppeals = async () => {
+  try {
+    const [rows] = await pool.execute(`SELECT 
+                A.id,
+                A.mensaje,
+                A.fecha,
+                U.id as userId,
+                U.nombre, 
+                U.apellido
+            FROM Apelaciones A
+            JOIN Usuario U ON A.id_usuario = U.id
+            WHERE A.resuelto = false`);
+    return rows;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const updateAppeal = async (id: number, description: string, state: string, adminId: number, userId: number) => {
+  try {
+    const [result2] = await pool.execute(
+      "UPDATE Usuario SET estado = ? WHERE id = ?",
+      [state, userId]
+    );
+    const [result] = await pool.execute(
+      "UPDATE Apelaciones SET mensaje_admin = ?, resuelto = ?, id_admin = ?,fecha_respuesta= CURRENT_TIMESTAMP WHERE id = ?",
+      [description, true, adminId, id]
     );
     
-    const users = rows as User[];
-    return users.length > 0 ? users[0] : null;
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };

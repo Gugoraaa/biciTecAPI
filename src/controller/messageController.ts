@@ -46,3 +46,17 @@ export const getMessages = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+export const updateMessageState = async (req: Request, res: Response) => {
+    try {
+        const {id} = req.params;
+        if (!id) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+        const message = await messageModel.updateMessageState(Number(id));
+        res.json(message);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};

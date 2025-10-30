@@ -8,6 +8,7 @@ import overviewRoutes from "./routes/overview";
 import reportRoutes from "./routes/report";
 import tripRoutes from "./routes/trips";
 import messageRoutes from "./routes/messages";
+import userRoutes from "./routes/user";
 dotenv.config();
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/overview", overviewRoutes);
 app.use("/reports", reportRoutes);
 app.use("/trips", tripRoutes);
 app.use("/messages", messageRoutes);
+app.use("/user", userRoutes);
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");
