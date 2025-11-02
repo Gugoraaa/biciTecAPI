@@ -47,14 +47,15 @@ export const getMessages = async (userId: number) => {
     m.id AS id_mensaje,
     m.titulo,
     m.cuerpo,
-    m.fecha,
+    CONVERT_TZ(m.fecha, 'UTC', 'America/Mexico_City') AS fecha,
     m.tipo,
     m.remitente,
     b.leido,
     b.id
-    FROM Bandeja b
-    JOIN Mensajes m ON b.id_mensaje = m.id
-    WHERE b.id_usuario = ?`,
+FROM Bandeja b
+JOIN Mensajes m ON b.id_mensaje = m.id
+WHERE b.id_usuario = ?;
+`,
       [userId]
     );
 
@@ -75,7 +76,7 @@ export const sendPrivate = async (
     const [result] = await pool.execute<ResultSetHeader>(
       `INSERT INTO Mensajes (titulo, cuerpo, remitente, tipo) 
        VALUES (?, ?, ?, ?)`,
-      [title, message, sender,type]
+      [title, message, sender, type]
     );
 
     const messageId = result.insertId;
