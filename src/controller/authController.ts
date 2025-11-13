@@ -3,24 +3,35 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { findUserByMatricula, createUser } from "../models/authModel";
 import { UserRole } from "../types/user.types";
+import redisClient from "../config/redis";
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const COOKIE_NAME = process.env.COOKIE_NAME || 'sid';
+const ACCESS_TTL_SECONDS = 60 * 60;
 
 export const me = async (req: Request, res: Response) => {
   try {
-    const user = req.user;
+    const token = req.cookies?.[COOKIE_NAME!];
 
+    const decoded = jwt.verify(token, JWT_SECRET!) as any;
+    const cached = await redisClient.get(`sess:${decoded.userId}`);
+
+    if (!cached || cached !== token) {
+      return res.status(401).json({ message: "Token expirado o inválido" });
+    }
+
+    const user = await findUserByMatricula(decoded.matricula);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
+    const { password: _, ...userWithoutPassword } = user;
     res.status(200).json({
       success: true,
-      user,
+      user: userWithoutPassword,
     });
   } catch (error) {
     console.error("Error fetching user:", error);
-    res.status(500).json({ message: "Error fetching user" });
+    return res.status(500).json({ message: "Error fetching user" });
   }
 };
 
@@ -68,8 +79,10 @@ export const register = async (req: Request, res: Response) => {
         rol: user.rol,
       },
       JWT_SECRET!,
-      { expiresIn: "1h" }
+      { expiresIn: ACCESS_TTL_SECONDS }
     );
+
+    await redisClient.set(`sess:${user.id}`, token, { EX: ACCESS_TTL_SECONDS });
 
     const { password: _, ...userWithoutPassword } = user;
 
@@ -117,19 +130,53 @@ export const login = async (req: Request, res: Response) => {
         rol: user.rol,
       },
       JWT_SECRET!,
-      { expiresIn: "1h" }
+      { expiresIn: ACCESS_TTL_SECONDS }
     );
 
+
+    // Store token in Redis
+    await redisClient.set(`sess:${user.id}`, token, { 
+      EX: ACCESS_TTL_SECONDS 
+    });
+
     const { password: _, ...userWithoutPassword } = user;
+
+    // Set HTTP-only cookie
+    res.cookie(COOKIE_NAME!, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Enable in production with HTTPS
+      sameSite: 'lax',
+      maxAge: ACCESS_TTL_SECONDS * 1000, // milliseconds
+      path: '/',
+    });
 
     res.status(200).json({
       success: true,
       message: "Login successful",
-      token,
       user: userWithoutPassword,
     });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Error logging in" });
   }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  const token = req.cookies?.[COOKIE_NAME!];
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET!) as { userId: string };
+      await redisClient.del(`sess:${decoded.userId}`);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+    
+    res.clearCookie(COOKIE_NAME!, { 
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+  }
+  return res.json({ success: true, message: 'Logged out successfully' });
 };
