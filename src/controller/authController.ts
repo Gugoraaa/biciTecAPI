@@ -144,8 +144,8 @@ export const login = async (req: Request, res: Response) => {
     // Set HTTP-only cookie
     res.cookie(COOKIE_NAME!, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Enable in production with HTTPS
-      sameSite: 'lax',
+      secure: true , // Enable in production with HTTPS
+      sameSite: 'none',
       maxAge: ACCESS_TTL_SECONDS * 1000, // milliseconds
       path: '/',
     });
@@ -174,8 +174,8 @@ export const logout = async (req: Request, res: Response) => {
     res.clearCookie(COOKIE_NAME!, { 
       path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
     });
   }
   return res.json({ success: true, message: 'Logged out successfully' });
