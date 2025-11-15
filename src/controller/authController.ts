@@ -133,20 +133,17 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: ACCESS_TTL_SECONDS }
     );
 
-
-    // Store token in Redis
     await redisClient.set(`sess:${user.id}`, token, { 
       EX: ACCESS_TTL_SECONDS 
     });
 
     const { password: _, ...userWithoutPassword } = user;
 
-    // Set HTTP-only cookie
     res.cookie(COOKIE_NAME!, token, {
       httpOnly: true,
-      secure: true , // Enable in production with HTTPS
+      secure: true , 
       sameSite: 'none',
-      maxAge: ACCESS_TTL_SECONDS * 1000, // milliseconds
+      maxAge: ACCESS_TTL_SECONDS * 1000, 
       path: '/',
     });
 

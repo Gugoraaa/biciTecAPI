@@ -74,3 +74,16 @@ export const updateAppeal = async (id: number, description: string, state: strin
     throw error;
   }
 };
+
+export const getUserStatus = async (id: number): Promise<string | null> => {
+    try {
+        const [rows] = await pool.execute<any[]>(
+            "SELECT estado FROM Usuario WHERE id = ?",
+            [id]
+        );
+        return rows.length > 0 ? rows[0].estado : null;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
