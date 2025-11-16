@@ -3,7 +3,14 @@ import pool from "../config/database";
 export const getUsers = async () => {
   try {
     const [rows] = await pool.execute(
-      "SELECT id,matricula, nombre, apellido,estado FROM Usuario"
+      `SELECT 
+        id,
+        matricula, 
+        nombre, 
+        apellido,
+        estado,
+        CONVERT_TZ(creado_en, @@session.time_zone, 'America/Mexico_City') as creado_en 
+      FROM Usuario`
     );
     return rows;
   } catch (error) {
@@ -57,7 +64,13 @@ export const getAppeals = async () => {
   }
 };
 
-export const updateAppeal = async (id: number, description: string, state: string, adminId: number, userId: number) => {
+export const updateAppeal = async (
+  id: number,
+  description: string,
+  state: string,
+  adminId: number,
+  userId: number
+) => {
   try {
     const [result2] = await pool.execute(
       "UPDATE Usuario SET estado = ? WHERE id = ?",
@@ -67,7 +80,7 @@ export const updateAppeal = async (id: number, description: string, state: strin
       "UPDATE Apelaciones SET mensaje_admin = ?, resuelto = ?, id_admin = ?,fecha_respuesta= CURRENT_TIMESTAMP WHERE id = ?",
       [description, true, adminId, id]
     );
-    
+
     return result;
   } catch (error) {
     console.error(error);
@@ -76,14 +89,14 @@ export const updateAppeal = async (id: number, description: string, state: strin
 };
 
 export const getUserStatus = async (id: number): Promise<string | null> => {
-    try {
-        const [rows] = await pool.execute<any[]>(
-            "SELECT estado FROM Usuario WHERE id = ?",
-            [id]
-        );
-        return rows.length > 0 ? rows[0].estado : null;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+  try {
+    const [rows] = await pool.execute<any[]>(
+      "SELECT estado FROM Usuario WHERE id = ?",
+      [id]
+    );
+    return rows.length > 0 ? rows[0].estado : null;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };
