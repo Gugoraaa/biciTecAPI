@@ -1,0 +1,27 @@
+node_modules
+npm-debug.log
+pnpm-debug.log
+yarn-debug.log
+yarn-error.log
+
+dist
+
+.env
+.env.*
+!.env.example
+
+.vscode
+.idea
+.DS_Store
+
+# Logs
+logs
+*.log
+
+*.tmp
+*.swp
+*.local
+
+    
+.git
+.gitignore
