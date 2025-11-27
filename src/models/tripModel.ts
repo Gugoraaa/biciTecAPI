@@ -73,9 +73,9 @@ export const getAvailableBikeAtStation = async (stationId: number): Promise<numb
     return bikes.length > 0 ? bikes[0].id : null;
 };
 
-export const getUserTripStatus = async (userID: number): Promise<{id: number, en_viaje: boolean} | null> => {
+export const getUserTripStatus = async (userID: string): Promise<{id: number, en_viaje: boolean} | null> => {
     const [rows] = await pool.query<UserStatusRow[]>(
-        'SELECT id, en_viaje FROM Usuario WHERE id = ?',
+        'SELECT id, en_viaje FROM Usuario WHERE uid = ?',
         [userID]
     );
     return rows.length > 0 ? {

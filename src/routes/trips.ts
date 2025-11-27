@@ -3,7 +3,7 @@ import { handleTrip, getActiveTrip } from '../controller/tripController';
 
 const router = Router();
 
-router.post('/:userId/trip', handleTrip);
-router.get('/:userId/active-trip', getActiveTrip);
+router.post('/:uId/trip', handleTrip);
+router.get('/:uId/active-trip', getActiveTrip);
 
 export default router;

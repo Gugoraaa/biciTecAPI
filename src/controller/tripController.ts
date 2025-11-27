@@ -7,11 +7,11 @@ import { sendPrivate } from "../models/messageModel";
 export const handleTrip = async (req: Request, res: Response) => {
   const connection = await pool.getConnection();
   try {
-    const userId = Number(req.params.userId);
+    const userId = req.params.uId;
     const stationId = Number(req.body.stationId);
     const distance = Number(req.body.distance);
 
-    if (!userId || isNaN(userId)) {
+    if (!userId) {
       return res.status(400).json({ error: "Invalid user ID" });
     }
     const user = await tripModel.getUserTripStatus(userId);
@@ -23,7 +23,7 @@ export const handleTrip = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid distance" });
     }
     
-    const userStatus = await getUserStatus(userId);
+    const userStatus = await getUserStatus(user.id);
     
 
     if (userStatus === "banned") {
@@ -47,7 +47,7 @@ export const handleTrip = async (req: Request, res: Response) => {
           .json({ error: "Station ID is required to end a trip" });
       }
 
-      const activeTrip = await tripModel.getActiveTrip(userId);
+      const activeTrip = await tripModel.getActiveTrip(user.id);
       if (!activeTrip) {
         return res.status(400).json({ error: "No active trip found" });
       }
@@ -64,7 +64,7 @@ export const handleTrip = async (req: Request, res: Response) => {
           [stationId]
         ),
         connection.query("UPDATE Usuario SET en_viaje = FALSE WHERE id = ?", [
-          userId,
+          user.id,
         ]),
       ]);
 
@@ -88,12 +88,12 @@ export const handleTrip = async (req: Request, res: Response) => {
           .json({ error: "No available bikes at this station" });
       }
 
-      const tripId = await tripModel.startTrip(userId, bikeId);
+      const tripId = await tripModel.startTrip(user.id, bikeId);
 
       await Promise.all([
         tripModel.updateBikeStation(bikeId),
         tripModel.updateBikesAtStation(stationId),
-        tripModel.updateUserStatus(userId),
+        tripModel.updateUserStatus(user.id),
       ]);
 
       await connection.commit();
