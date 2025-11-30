@@ -10,6 +10,7 @@ export const handleTrip = async (req: Request, res: Response) => {
     const userId = req.params.uId;
     const stationId = Number(req.body.stationId);
     const distance = Number(req.body.distance);
+    const secureTrip = req.body.secureTrip;
 
     if (!userId) {
       return res.status(400).json({ error: "Invalid user ID" });
@@ -52,7 +53,7 @@ export const handleTrip = async (req: Request, res: Response) => {
         return res.status(400).json({ error: "No active trip found" });
       }
 
-      await tripModel.endTrip(activeTrip.id, distance);
+      await tripModel.endTrip(activeTrip.id, distance, secureTrip);
 
       await Promise.all([
         connection.query(

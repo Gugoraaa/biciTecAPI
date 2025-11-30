@@ -35,6 +35,7 @@ export const getBikeTripLogs = async (bikeId: number): Promise<FormattedBikeTrip
         DATE_FORMAT(CONVERT_TZ(v.fecha_uso, '+00:00', 'America/Mexico_City'), '%Y-%m-%d %H:%i:%s') AS fecha,
         v.tiempo_uso AS tiempo,
         v.distancia,
+        v.viaje_seguro,
         CONCAT(u.nombre, ' ', u.apellido) AS usuario
         FROM viajes v
         JOIN Usuario u ON v.id_usuario = u.id
@@ -48,6 +49,7 @@ export const getBikeTripLogs = async (bikeId: number): Promise<FormattedBikeTrip
         fecha: row.fecha,
         tiempo: row.tiempo,
         distancia: row.distancia,
+        viaje_seguro: row.viaje_seguro,
         usuario: row.usuario
     }));
 };
