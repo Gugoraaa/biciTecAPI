@@ -15,6 +15,7 @@ export const handleTrip = async (req: Request, res: Response) => {
     if (!userId) {
       return res.status(400).json({ error: "Invalid user ID" });
     }
+    await tripModel.creatNewRegister(userId);
     const user = await tripModel.getUserTripStatus(userId);
 
     if (!user) {
@@ -23,7 +24,11 @@ export const handleTrip = async (req: Request, res: Response) => {
     if (!distance || isNaN(distance)) {
       return res.status(400).json({ error: "Invalid distance" });
     }
+
+
     
+ 
+
     const userStatus = await getUserStatus(user.id);
     
 
@@ -48,6 +53,10 @@ export const handleTrip = async (req: Request, res: Response) => {
           .json({ error: "Station ID is required to end a trip" });
       }
 
+      if(!secureTrip){
+        return res.status(400).json({ error: "Secure trip is required to end a trip" });
+      }
+
       const activeTrip = await tripModel.getActiveTrip(user.id);
       if (!activeTrip) {
         return res.status(400).json({ error: "No active trip found" });
@@ -70,6 +79,8 @@ export const handleTrip = async (req: Request, res: Response) => {
       ]);
 
       await connection.commit();
+
+      await tripModel.updateRegister(userId);
 
       return res.json({
         message: "Trip ended successfully",
