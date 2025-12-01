@@ -37,7 +37,7 @@ export const handleTrip = async (req: Request, res: Response) => {
         "Bicitec Account Manager",
         "Intentaste iniciar un viaje, pero parece que tu cuenta esta suspendida",
         "1",
-        String(userId),
+        String(user.id),
         "account_notification"
       );
       return res.status(403).json({ error: "User is banned" });
