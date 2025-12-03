@@ -26,9 +26,6 @@ export const handleTrip = async (req: Request, res: Response) => {
     }
 
 
-    
- 
-
     const userStatus = await getUserStatus(user.id);
     
 
@@ -52,10 +49,7 @@ export const handleTrip = async (req: Request, res: Response) => {
           .status(400)
           .json({ error: "Station ID is required to end a trip" });
       }
-
-      if(!secureTrip){
-        return res.status(400).json({ error: "Secure trip is required to end a trip" });
-      }
+      
 
       const activeTrip = await tripModel.getActiveTrip(user.id);
       if (!activeTrip) {
